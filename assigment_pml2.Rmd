@@ -1,0 +1,81 @@
+---
+title: "Assigment for PML"
+author: "Gustavo"
+date: "20 de enero de 2016"
+output: html_document
+---
+
+##Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, I  will use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways, this experiment. 
+
+###
+More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+##Strategy
+
+###Step 1:  Define the question
+Identify when an excercise is correctly done.
+###Step 2:  Interpretate the document and the data
+Understand what variables, types, units, categorical or groups
+###Step 3:  Selecting variables
+Stablishing a criteria for the selecting variables
+Criteria for selecting varibales
+    The criteria used for selecting the variables for prediction was mathematical, acceleration will resume distance and time of the movement, having the 3 axis will give us time, distance and direction of the movement.
+###Step 4:  Preprocess data
+    Standarize de information for eliminate the difference in future anthropometric measurements of other participants.
+###Step 5:  Choose methods to test
+    According to your desired outcome and process variables.  There are a lot of methods availables. http://topepo.github.io/caret/bytag.html 
+###Step 6:  Train and select the best method
+    Check accuracy of the results for each method.
+###Step 7:  Validate with the Test data
+    Use the data of the data partion for testing data.
+
+Required libraries
+```{r}
+library(caret)
+```
+
+Downloading Data
+```{r}
+if(!exists("dborig"))
+{
+url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+download.file(url, "D://pml-training.csv", method = "internal")
+dborig <- read.csv("D://pml-training.csv")
+}
+```
+
+Splitting data by person considering the body measurements and selecting variables.  
+```{r}
+dborig1 <- subset(dborig, select = c(accel_belt_y, accel_belt_x, accel_belt_z, accel_arm_y, accel_arm_x, accel_arm_z, accel_forearm_y, accel_forearm_x, accel_forearm_z, accel_dumbbell_y, accel_dumbbell_x, accel_dumbbell_z, classe))
+```
+
+Splitting data for training and create a Data Partition.
+```{r}
+inTrain <- createDataPartition(y=dborig1$classe, p=0.6, list=FALSE)
+training <- dborig1[inTrain,]
+testing <- dborig1[-inTrain,]
+```
+
+We try different "Categorical and regression methods" to test Accuracy on the training set.
+```{r}
+modelFitbayglm <- train(classe ~., data=training, preProcess=c("center","scale"), method="bayesglm")
+modelFitrpart <- train(classe ~., data=training, preProcess=c("center","scale"), method="rpart")
+modelFitctree <- train(classe ~., data=training, preProcess=c("center","scale"), method="ctree")
+modelFitQda <- train(classe ~., data=training, preProcess=c("center","scale"), method="QdaCov")
+modelFitrf <- train(classe ~., data=training, preProcess=c("center","scale"), method="rf")
+Meth <- rbind("bayesglm", "rpart", "ctree", "QdaCov", "rf")
+Accu <- rbind(modelFitbayglm$results[2],modelFitrpart$results[1,2],modelFitctree$results[1,2], modelFitQda$results[2],modelFitrf$results[1,2])
+cbind(Meth,Accu)
+```
+
+We test the most Accurate model "Random Forest" on the test set.
+```{r}
+pred <- predict(modelFitrf, testing)
+table(pred,testing$classe)
+```
+
+
+Conclussions
+   The random forest result to be an effective method for identify the correct way of doing an excercise, using the information of the accelerometers.

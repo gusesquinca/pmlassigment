@@ -16,20 +16,29 @@ More information is available from the website here: http://groupware.les.inf.pu
 
 ###Step 1:  Define the question
 Identify when an excercise is correctly done.
+
 ###Step 2:  Interpretate the document and the data
-Understand what variables, types, units, categorical or groups
+Understand what variables, types, units, categorical or groups.
+
 ###Step 3:  Selecting variables
 Stablishing a criteria for the selecting variables
 Criteria for selecting varibales
     The criteria used for selecting the variables for prediction was mathematical, acceleration will resume distance and time of the movement, having the 3 axis will give us time, distance and direction of the movement.
+    
 ###Step 4:  Preprocess data
     Standarize de information for eliminate the difference in future anthropometric measurements of other participants.
+    
 ###Step 5:  Choose methods to test
-    According to your desired outcome and process variables.  There are a lot of methods availables. http://topepo.github.io/caret/bytag.html 
+    According to your desired outcome and process variables.  There are a lot of methods availables. http://topepo.github.io/caret/bytag.html
+    
 ###Step 6:  Train and select the best method
     Check accuracy of the results for each method.
+    
 ###Step 7:  Validate with the Test data
     Use the data of the data partion for testing data.
+
+
+##Process for PML
 
 Required libraries
 ```{r}
@@ -59,23 +68,23 @@ testing <- dborig1[-inTrain,]
 ```
 
 We try different "Categorical and regression methods" to test Accuracy on the training set.
-```{r}
+```{r results="hide"}
 modelFitbayglm <- train(classe ~., data=training, preProcess=c("center","scale"), method="bayesglm")
 modelFitrpart <- train(classe ~., data=training, preProcess=c("center","scale"), method="rpart")
 modelFitctree <- train(classe ~., data=training, preProcess=c("center","scale"), method="ctree")
 modelFitQda <- train(classe ~., data=training, preProcess=c("center","scale"), method="QdaCov")
 modelFitrf <- train(classe ~., data=training, preProcess=c("center","scale"), method="rf")
-Meth <- rbind("bayesglm", "rpart", "ctree", "QdaCov", "rf")
-Accu <- rbind(modelFitbayglm$results[2],modelFitrpart$results[1,2],modelFitctree$results[1,2], modelFitQda$results[2],modelFitrf$results[1,2])
-cbind(Meth,Accu)
 ```
 
 We test the most Accurate model "Random Forest" on the test set.
 ```{r}
+Meth <- rbind("bayesglm", "rpart", "ctree", "QdaCov", "rf")
+Accu <- rbind(modelFitbayglm$results[2],modelFitrpart$results[1,2],modelFitctree$results[1,2], modelFitQda$results[2],modelFitrf$results[1,2])
+cbind(Meth,Accu)
 pred <- predict(modelFitrf, testing)
 table(pred,testing$classe)
 ```
 
 
-Conclussions
+##Conclussions
    The random forest result to be an effective method for identify the correct way of doing an excercise, using the information of the accelerometers.
